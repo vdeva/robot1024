@@ -7,9 +7,31 @@ import { cosineDistance, eq, gt, sql } from "drizzle-orm";
 import { nanoid } from "nanoid";
 import { revalidatePath } from "next/cache";
 
-export async function createPost(content: string, parentPost: string | null) {
+export async function createPost(
+  content: string,
+  parentPost: string | null,
+  captchaToken: string,
+) {
   if (!process.env.MISTRAL_API_KEY) throw new Error("Missing MISTRAL_API_KEY.");
   if (!process.env.POST_LIMIT) throw new Error("Missing POST_LIMIT.");
+  if (!process.env.HCAPTCHA_SECRET_KEY)
+    throw new Error("Missing HCAPTCHA_SECRET_KEY.");
+
+  const params = new URLSearchParams();
+  params.append("response", captchaToken);
+  params.append("secret", process.env.HCAPTCHA_SECRET_KEY);
+
+  const verifyResponse = await fetch("https://hcaptcha.com/siteverify", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/x-www-form-urlencoded",
+    },
+    body: params,
+  });
+
+  if (!verifyResponse.ok) {
+    return { status: "error", message: "Captcha failed." };
+  }
 
   if (
     Number(process.env.POST_LIMIT) != -1 &&

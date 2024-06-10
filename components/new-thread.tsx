@@ -1,6 +1,7 @@
 "use client";
 
 import { createPost } from "@/app/_actions/create-post";
+import HCaptcha from "@hcaptcha/react-hcaptcha";
 import { useRouter } from "next/navigation";
 import { ChangeEvent, FormEvent, useEffect, useState } from "react";
 
@@ -8,6 +9,7 @@ export function NewThread() {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
   const [inputText, setInputText] = useState("");
+  const [captchaToken, setCaptchaToken] = useState("");
   const [postRes, setPostRes] = useState<{
     status: string;
     message: string;
@@ -16,6 +18,10 @@ export function NewThread() {
 
   const handleChange = (event: ChangeEvent<HTMLTextAreaElement>) => {
     setInputText(event.target.value);
+  };
+
+  const onCaptchaVerify = (token: string) => {
+    setCaptchaToken(token);
   };
 
   useEffect(() => {
@@ -31,7 +37,7 @@ export function NewThread() {
     event.preventDefault();
     if (inputText.length < 1) return;
 
-    setPostRes(await createPost(inputText, null));
+    setPostRes(await createPost(inputText, null, captchaToken));
 
     setIsLoading(false);
   };
@@ -47,10 +53,16 @@ export function NewThread() {
           </div>
           <textarea
             disabled={isLoading}
-            className="h-full min-h-[60px] border border-[#AAAAAA] px-1 focus-visible:border-[#EEAA88] focus-visible:outline-none"
+            className="h-full min-h-[60px] border border-[#AAAAAA] px-1 text-sm focus-visible:border-[#EEAA88] focus-visible:outline-none"
             value={inputText}
             onChange={handleChange}
             placeholder=""
+          />
+        </div>
+        <div className="pt-[4px]">
+          <HCaptcha
+            sitekey={process.env.NEXT_PUBLIC_HCAPTCHA_SITE_KEY as string}
+            onVerify={onCaptchaVerify}
           />
         </div>
         {postRes?.status == "error" && (
@@ -60,6 +72,9 @@ export function NewThread() {
         )}
         <div className="flex w-full flex-row items-center justify-end">
           <button
+            disabled={
+              isLoading || inputText.length < 1 || captchaToken.length < 1
+            }
             className="mt-2 rounded-sm border border-neutral-400 bg-[#E9E9ED] px-1 py-[1px] text-sm hover:bg-[#D0D0D7] active:bg-[#b3b3b9]"
             type="submit"
           >
