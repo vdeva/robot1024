@@ -27,6 +27,7 @@ export function NewReply(props: { parentPost: string }) {
   useEffect(() => {
     setIsLoading(true);
     if (postRes?.status == "success") {
+      setInputText("");
       router.refresh();
     }
     setIsLoading(false);

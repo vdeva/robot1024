@@ -27,6 +27,7 @@ export function NewThread() {
   useEffect(() => {
     setIsLoading(true);
     if (postRes?.postId) {
+      setInputText("");
       router.push(`/thread/${postRes.postId}`);
     }
     setIsLoading(false);
