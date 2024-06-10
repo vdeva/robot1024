@@ -35,7 +35,7 @@ export default async function Thread({ params }: { params: { tid: string } }) {
       <div className="pb-10">
         <NewReply parentPost={openingPostWithReplies.id} />
       </div>
-      <div className="flex w-full max-w-[1000px] flex-col gap-4 px-4">
+      <div className="flex w-full max-w-[1000px] flex-col gap-4 px-4 pb-32">
         <div className="flex flex-col gap-2">
           <p className="text-[#800000]">
             <span className="pr-2 font-bold text-[#117743]">Anonymous</span>
@@ -52,17 +52,17 @@ export default async function Thread({ params }: { params: { tid: string } }) {
             return (
               <div
                 key={reply.id}
-                className="flex max-w-min flex-col gap-2 text-nowrap border-b border-r border-[#DEC7BF] bg-[#F0E0D6] px-5 py-3"
+                className="flex max-w-fit flex-col gap-2 border-b border-r border-[#DEC7BF] bg-[#F0E0D6] px-5 py-3"
               >
                 <p className="text-[#800000]">
-                  <span className="break-keep pr-2 font-bold text-[#117743]">
+                  <span className="pr-2 font-bold text-[#117743]">
                     Anonymous
                   </span>
                   {reply.createdAt.toLocaleDateString() +
                     ", " +
                     reply.createdAt.toLocaleTimeString()}
                 </p>
-                <p className="max-w-[900px] text-[#800000]">{reply.content}</p>
+                <p className="text-[#800000]">{reply.content}</p>
               </div>
             );
           })}
