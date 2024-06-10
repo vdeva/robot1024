@@ -9,8 +9,12 @@ import { revalidatePath } from "next/cache";
 
 export async function createPost(content: string, parentPost: string | null) {
   if (!process.env.MISTRAL_API_KEY) throw new Error("Missing MISTRAL_API_KEY.");
+  if (!process.env.POST_LIMIT) throw new Error("Missing POST_LIMIT.");
 
-  if (content.length > 2000) {
+  if (
+    Number(process.env.POST_LIMIT) != -1 &&
+    content.length > Number(process.env.POST_LIMIT)
+  ) {
     return { status: "error", message: "Post exceeds 2000 characters." };
   }
 
