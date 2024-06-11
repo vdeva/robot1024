@@ -26,13 +26,13 @@ export function NewThread() {
   };
 
   useEffect(() => {
-    setIsLoading(true);
     if (postRes?.postId) {
+      setIsLoading(true);
       setInputText("");
       setCaptchaToken("");
       router.push(`/thread/${postRes.postId}`);
+      setIsLoading(false);
     }
-    setIsLoading(false);
   }, [postRes, router]);
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
@@ -54,7 +54,7 @@ export function NewThread() {
         <div className="flex flex-col">
           <textarea
             disabled={isLoading}
-            className="focus-visible: h-full min-h-[80px] w-full rounded-xl border px-3 py-2 text-sm shadow-xl focus-visible:outline-none md:min-w-[400px]"
+            className="h-full min-h-[80px] w-full min-w-[300px] rounded-xl border px-3 py-2 text-sm shadow-xl focus-visible:outline-none md:min-w-[400px]"
             value={inputText}
             onChange={handleChange}
             placeholder="Post something..."
