@@ -38,7 +38,7 @@ export default async function Home() {
               href={`/thread/${openingPost.id}`}
               className="no-scrollbar flex h-[260px] w-[190px] flex-col gap-1 overflow-hidden overflow-y-scroll rounded-xl border border-neutral-200 bg-white text-neutral-800 shadow-md transition-all duration-300 ease-in-out hover:border-neutral-300 hover:shadow-2xl"
             >
-              {openingPost.replyCount > 1 && (
+              {openingPost.replyCount > 0 && (
                 <div className="pointer-events-none absolute flex h-[260px] flex-col items-start justify-end pb-[7px] pl-[7px]">
                   <p className="rounded-lg bg-emerald-500 px-2 text-xs text-white">
                     <span className="font-bold">{openingPost.replyCount}</span>
