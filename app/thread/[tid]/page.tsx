@@ -23,50 +23,46 @@ export default async function Thread({ params }: { params: { tid: string } }) {
   if (!openingPostWithReplies) notFound();
 
   return (
-    <main className="flex min-h-screen flex-col items-center bg-[#FFFFEE]">
-      <div className="flex w-full flex-row items-center justify-center bg-gradient-to-b from-[#fed6af] to-[#FFFFEE] py-8">
+    <main className="flex min-h-screen flex-col items-center bg-neutral-50">
+      <div className="flex w-full flex-row items-center justify-center py-8">
         <Link
           href={"/"}
-          className="text-3xl font-bold text-[#800000] hover:text-red-600"
+          className="select-none text-3xl font-bold transition-all hover:text-neutral-600"
         >
           ROBOT1024
         </Link>
       </div>
-      <div className="pb-10">
-        <NewReply parentPost={openingPostWithReplies.id} />
-      </div>
-      <div className="flex w-full max-w-[1000px] flex-col gap-4 px-4 pb-32">
+      <div className="flex w-full max-w-[800px] flex-col gap-4 px-4">
         <div className="flex flex-col gap-2">
-          <p className="text-[#800000]">
-            <span className="pr-2 font-bold text-[#117743]">Anonymous</span>
+          <p className="text-xs text-neutral-500">
             {openingPostWithReplies.createdAt.toLocaleDateString() +
               ", " +
               openingPostWithReplies.createdAt.toLocaleTimeString()}
           </p>
-          <p className="w-full max-w-[900px] text-[#800000]">
+          <p className="w-full max-w-[800px] text-neutral-800">
             {openingPostWithReplies.content}
           </p>
         </div>
-        <div className="flex w-full flex-col gap-1">
+        <div className="flex w-full flex-col gap-2">
           {openingPostWithReplies.replies.map((reply, index) => {
             return (
               <div
                 key={reply.id}
-                className="flex max-w-fit flex-col gap-2 border-b border-r border-[#DEC7BF] bg-[#F0E0D6] px-5 py-3"
+                className="flex max-w-fit flex-col gap-2 rounded-lg border border-neutral-200 bg-white px-5 py-3"
               >
-                <p className="text-[#800000]">
-                  <span className="pr-2 font-bold text-[#117743]">
-                    Anonymous
-                  </span>
+                <p className="text-xs text-neutral-500">
                   {reply.createdAt.toLocaleDateString() +
                     ", " +
                     reply.createdAt.toLocaleTimeString()}
                 </p>
-                <p className="text-[#800000]">{reply.content}</p>
+                <p className="text-neutral-800">{reply.content}</p>
               </div>
             );
           })}
         </div>
+      </div>
+      <div className="pb-36 pt-16">
+        <NewReply parentPost={openingPostWithReplies.id} />
       </div>
     </main>
   );

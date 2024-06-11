@@ -21,7 +21,7 @@ export async function createPost(
   params.append("response", captchaToken);
   params.append("secret", process.env.HCAPTCHA_SECRET_KEY);
 
-  const verifyResponse = await fetch("https://hcaptcha.com/siteverify", {
+  const verifyResponse = await fetch("https://api.hcaptcha.com/siteverify", {
     method: "POST",
     headers: {
       "Content-Type": "application/x-www-form-urlencoded",
@@ -33,17 +33,23 @@ export async function createPost(
     return { status: "error", message: "Captcha failed." };
   }
 
-  if (
-    Number(process.env.POST_LIMIT) != -1 &&
-    content.length > Number(process.env.POST_LIMIT)
-  ) {
-    return { status: "error", message: "Post exceeds 2000 characters." };
+  const response_json = await verifyResponse.json();
+
+  if (!response_json["success"]) {
+    return { status: "error", message: "Captcha failed." };
   }
 
   if (content.length < 1) {
     return {
       status: "error",
       message: "Posts must be at least 1 character long.",
+    };
+  }
+
+  if (content.length > 2000) {
+    return {
+      status: "error",
+      message: "Posts must be under 2000 characters long.",
     };
   }
 
@@ -66,11 +72,49 @@ export async function createPost(
 
   console.log(totalPostsAndReplies);
 
-  if (totalPostsAndReplies > 10000) throw new Error("Post limit reached.");
+  if (
+    Number(process.env.POST_LIMIT) != -1 &&
+    totalPostsAndReplies > Number(process.env.POST_LIMIT)
+  ) {
+    return { status: "error", message: "Post limit reached." };
+  }
 
   const apiKey = process.env.MISTRAL_API_KEY;
 
   const client = new MistralClient(apiKey);
+
+  const moderationResponse = await client.chat({
+    model: "mistral-large-latest",
+    temperature: 0,
+    messages: [
+      {
+        role: "system",
+        content: `
+      Here is a post submitted by a user:
+      ###POST BEGIN###${content}###POST END###
+      If the post is insulting, sexist, racist, contains a link to another website or is an advertisement reply with "bad post".
+      Otherwise reply with "ok post".
+      Let people be silly. It's ok if a post is confusing or makes no sense.
+      A post that is negative or is making fun of something is still considered an "ok post".
+      Do not reply anything other than "bad post" or "ok post". Do not give any additional comments.
+      `,
+      },
+    ],
+  });
+
+  if (
+    moderationResponse.choices[0].message.content
+      .toLowerCase()
+      .includes("bad post") ||
+    !moderationResponse.choices[0].message.content
+      .toLowerCase()
+      .includes("ok post")
+  ) {
+    return {
+      status: "error",
+      message: "Post deemed inappropriate.",
+    };
+  }
 
   const embeddingsResponse = await client.embeddings({
     model: "mistral-embed",

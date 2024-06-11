@@ -9,6 +9,7 @@ export function NewThread() {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
   const [inputText, setInputText] = useState("");
+  const [captchaOpen, setCaptchaOpen] = useState(false);
   const [captchaToken, setCaptchaToken] = useState("");
   const [postRes, setPostRes] = useState<{
     status: string;
@@ -28,6 +29,7 @@ export function NewThread() {
     setIsLoading(true);
     if (postRes?.postId) {
       setInputText("");
+      setCaptchaToken("");
       router.push(`/thread/${postRes.postId}`);
     }
     setIsLoading(false);
@@ -36,6 +38,9 @@ export function NewThread() {
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     setIsLoading(true);
     event.preventDefault();
+    setPostRes({ message: "", status: "" });
+    setCaptchaToken("");
+    setCaptchaOpen(false);
     if (inputText.length < 1) return;
 
     setPostRes(await createPost(inputText, null, captchaToken));
@@ -46,42 +51,58 @@ export function NewThread() {
   return (
     <div>
       <form onSubmit={handleSubmit}>
-        <div className="flex flex-row gap-[1px]">
-          <div className="flex flex-row items-center border border-[#880000] bg-[#EEAA88]">
-            <p className="py-4 pl-2 pr-5 text-sm font-bold text-[#880000]">
-              Post
-            </p>
-          </div>
+        <div className="flex flex-col">
           <textarea
             disabled={isLoading}
-            className="h-full min-h-[60px] border border-[#AAAAAA] px-1 text-sm focus-visible:border-[#EEAA88] focus-visible:outline-none"
+            className="focus-visible: h-full min-h-[80px] w-full rounded-xl border px-3 py-2 text-sm shadow-xl focus-visible:outline-none md:min-w-[400px]"
             value={inputText}
             onChange={handleChange}
-            placeholder=""
+            placeholder="Post something..."
           />
+          <div className="mt-4 flex w-full flex-row items-center justify-between">
+            {postRes?.status == "error" && !captchaOpen ? (
+              <p className="rounded-full bg-red-500 px-3 pb-1 pt-[5px] text-sm text-white">
+                Error: {postRes.message}
+              </p>
+            ) : (
+              <div></div>
+            )}
+            {captchaOpen || captchaToken.length > 1 ? (
+              <HCaptcha
+                sitekey={process.env.NEXT_PUBLIC_HCAPTCHA_SITE_KEY as string}
+                onVerify={onCaptchaVerify}
+              />
+            ) : (
+              <button
+                disabled={isLoading || inputText.length < 1}
+                onClick={() => setCaptchaOpen(true)}
+                className={`rounded-full px-3 pb-1 pt-[5px] text-sm text-white shadow-lg transition-all ${
+                  isLoading || inputText.length < 1
+                    ? "cursor-not-allowed bg-neutral-800/50"
+                    : "bg-black hover:bg-neutral-500 hover:shadow-xl"
+                }`}
+              >
+                Post
+              </button>
+            )}
+          </div>
         </div>
-        <div className="pt-[4px]">
-          <HCaptcha
-            sitekey={process.env.NEXT_PUBLIC_HCAPTCHA_SITE_KEY as string}
-            onVerify={onCaptchaVerify}
-          />
-        </div>
-        {postRes?.status == "error" && (
-          <p className="mt-[1px] bg-red-500 px-2 text-sm text-white">
-            Error: {postRes.message}
-          </p>
+
+        {captchaToken.length > 1 && (
+          <div className="mt-4 flex w-full flex-row items-center justify-end gap-2">
+            <button
+              disabled={isLoading || inputText.length < 1}
+              className={`rounded-full px-3 pb-1 pt-[5px] text-sm text-white shadow-lg transition-all ${
+                isLoading || inputText.length < 1
+                  ? "cursor-not-allowed bg-neutral-800/50"
+                  : "bg-black hover:bg-neutral-500 hover:shadow-xl"
+              }`}
+              type="submit"
+            >
+              Post
+            </button>
+          </div>
         )}
-        <div className="flex w-full flex-row items-center justify-end">
-          <button
-            disabled={
-              isLoading || inputText.length < 1 || captchaToken.length < 1
-            }
-            className="mt-2 rounded-sm border border-neutral-400 bg-[#E9E9ED] px-1 py-[1px] text-sm hover:bg-[#D0D0D7] active:bg-[#b3b3b9]"
-            type="submit"
-          >
-            Post
-          </button>
-        </div>
       </form>
     </div>
   );

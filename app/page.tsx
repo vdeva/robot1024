@@ -17,11 +17,11 @@ export default async function Home() {
     .orderBy(sql`${openingPosts.lastReplyCreatedAt} desc`);
 
   return (
-    <main className="flex min-h-screen flex-col items-center bg-[#FFFFEE]">
-      <div className="flex w-full flex-row items-center justify-center bg-gradient-to-b from-[#fed6af] to-[#FFFFEE] py-8">
+    <main className="flex min-h-screen flex-col items-center bg-neutral-50">
+      <div className="flex w-full flex-row items-center justify-center py-8">
         <Link
           href={"/"}
-          className="text-3xl font-bold text-[#800000] hover:text-red-600"
+          className="select-none text-3xl font-bold transition-all hover:text-neutral-600"
         >
           ROBOT1024
         </Link>
@@ -29,18 +29,24 @@ export default async function Home() {
       <div className="pb-10">
         <NewThread />
       </div>
-      <div className="grid max-w-[1300px] grid-cols-1 items-center gap-4 px-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6">
+      <div className="grid max-w-[1300px] grid-cols-1 items-center gap-4 px-4 pb-32 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
         {openingPostsRes.map((openingPost) => {
           return (
             <Link
               key={openingPost.id}
               href={`/thread/${openingPost.id}`}
-              className="flex h-[260px] w-[190px] flex-col items-center gap-1 overflow-hidden px-4 py-2 text-[#800000] shadow-md transition-all hover:shadow-lg"
+              className="no-scrollbar flex h-[260px] w-[190px] flex-col gap-1 overflow-hidden overflow-y-scroll rounded-xl border border-neutral-200 bg-white text-neutral-800 shadow-md transition-all duration-300 ease-in-out hover:border-neutral-300 hover:shadow-2xl"
             >
-              <p className="text-xs">
-                R: <span className="font-bold">{openingPost.replyCount}</span>
+              {openingPost.replyCount > 1 && (
+                <div className="pointer-events-none absolute flex h-[260px] flex-col items-start justify-end pb-[7px] pl-[7px]">
+                  <p className="rounded-lg bg-emerald-500 px-2 text-xs text-white">
+                    <span className="font-bold">{openingPost.replyCount}</span>
+                  </p>
+                </div>
+              )}
+              <p className="self-center px-4 pb-8 pt-2 text-sm">
+                {openingPost.content}
               </p>
-              <p className="text-sm">{openingPost.content}</p>
             </Link>
           );
         })}
