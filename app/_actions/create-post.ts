@@ -125,76 +125,88 @@ export async function createPost(
 
   const embeddingParsed = embeddingsResponse.data[0].embedding;
 
-  const similarityOps = sql<number>`1 - (${cosineDistance(openingPosts.embedding, embeddingParsed)})`;
-  const similarityReplies = sql<number>`1 - (${cosineDistance(replies.embedding, embeddingParsed)})`;
+  async function performTransaction() {
+    try {
+      const result = await db.transaction(
+        async (tx) => {
+          const similarityThreshold = 0.94;
+          const similarityOps = sql`1 - (${cosineDistance(openingPosts.embedding, embeddingParsed)})`;
+          const similarityReplies = sql`1 - (${cosineDistance(replies.embedding, embeddingParsed)})`;
 
-  const similarPosts = await db.transaction(async (tx) => {
-    const similarOps = await tx
-      .select({ similarityOps })
-      .from(openingPosts)
-      .where(gt(similarityOps, 0.94))
-      .limit(1);
+          const [similarOp] = await tx
+            .select({ similarity: similarityOps })
+            .from(openingPosts)
+            .where(gt(similarityOps, similarityThreshold))
+            .limit(1);
 
-    const similarReplies = await tx
-      .select({ similarityReplies })
-      .from(replies)
-      .where(gt(similarityReplies, 0.94))
-      .limit(1);
+          const [similarReply] = await tx
+            .select({ similarity: similarityReplies })
+            .from(replies)
+            .where(gt(similarityReplies, similarityThreshold))
+            .limit(1);
 
-    return { similarOps, similarReplies };
-  });
+          if (similarOp || similarReply) {
+            await tx.rollback();
+            return { status: "error", message: "Too Unoriginal." };
+          }
 
-  if (similarPosts.similarOps[0] || similarPosts.similarReplies[0]) {
-    return { status: "error", message: "Too Unoriginal." };
-  }
+          let newRecord;
+          if (!parentPost) {
+            newRecord = await tx
+              .insert(openingPosts)
+              .values({
+                id: nanoid(16),
+                content: content,
+                embedding: embeddingParsed,
+              })
+              .returning({ insertedId: openingPosts.id });
+          } else {
+            newRecord = await tx
+              .insert(replies)
+              .values({
+                id: nanoid(16),
+                content: content,
+                embedding: embeddingParsed,
+                openingPostId: parentPost,
+              })
+              .returning({ insertedId: replies.id });
 
-  if (!parentPost) {
-    const newPost = await db
-      .insert(openingPosts)
-      .values({
-        id: nanoid(16),
-        content: content,
-        embedding: embeddingParsed,
-      })
-      .returning({ insertedId: openingPosts.id });
+            await tx
+              .update(openingPosts)
+              .set({ lastReplyCreatedAt: sql`CURRENT_TIMESTAMP` })
+              .where(eq(openingPosts.id, parentPost));
+          }
 
-    if (!newPost || !newPost[0].insertedId)
-      return { status: "error", message: "Failed to create post." };
+          if (!newRecord || !newRecord[0].insertedId) {
+            await tx.rollback();
+            return { status: "error", message: "Failed to create post." };
+          }
 
-    revalidatePath("/");
-
-    return {
-      status: "success",
-      message: "Post created.",
-      postId: newPost[0].insertedId,
-    };
-  }
-
-  const newPost = await db.transaction(async (trx) => {
-    const newReply = await trx
-      .insert(replies)
-      .values({
-        id: nanoid(16),
-        content: content,
-        embedding: embeddingParsed,
-        openingPostId: parentPost,
-      })
-      .returning({ insertedId: replies.id });
-
-    if (newReply.length > 0) {
-      await trx
-        .update(openingPosts)
-        .set({ lastReplyCreatedAt: sql`CURRENT_TIMESTAMP` })
-        .where(eq(openingPosts.id, parentPost));
+          return {
+            status: "success",
+            message: "Post created successfully.",
+            postId: newRecord[0].insertedId,
+          };
+        },
+        {
+          isolationLevel: "serializable",
+        },
+      );
+      return result;
+    } catch (error) {
+      console.error("Transaction error:", error);
+      return { status: "error", message: "Too Unoriginal." };
     }
+  }
 
-    return newReply;
-  });
+  const result = await performTransaction();
 
-  if (!newPost || !newPost[0].insertedId)
-    return { status: "error", message: "Failed to create reply." };
+  if (result.status === "error") {
+    console.error(result.message);
+  } else {
+    console.log(result.message);
+    revalidatePath("/");
+  }
 
-  revalidatePath("/");
-
-  return { status: "success", message: "Reply created." };
+  return result;
 }
