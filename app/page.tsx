@@ -18,13 +18,14 @@ export default async function Home() {
 
   return (
     <main className="flex min-h-screen flex-col items-center bg-neutral-50">
-      <div className="flex w-full flex-row items-center justify-center py-8">
+      <div className="flex w-full flex-col items-center justify-center py-8">
         <Link
           href={"/"}
           className="select-none text-3xl font-bold transition-all hover:text-neutral-600"
         >
           ROBOT1024
         </Link>
+        <p className="text-xs">Where anything can only be said once.</p>
       </div>
       <div className="pb-10">
         <NewThread />
@@ -44,7 +45,7 @@ export default async function Home() {
                   </p>
                 </div>
               )}
-              <p className="self-center px-4 pb-8 pt-2 text-sm">
+              <p className="max-w-full self-center break-words px-4 pb-8 pt-2 text-sm">
                 {openingPost.content}
               </p>
             </Link>

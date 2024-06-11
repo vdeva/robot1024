@@ -24,13 +24,14 @@ export default async function Thread({ params }: { params: { tid: string } }) {
 
   return (
     <main className="flex min-h-screen flex-col items-center bg-neutral-50">
-      <div className="flex w-full flex-row items-center justify-center py-8">
+      <div className="flex w-full flex-col items-center justify-center py-8">
         <Link
           href={"/"}
           className="select-none text-3xl font-bold transition-all hover:text-neutral-600"
         >
           ROBOT1024
         </Link>
+        <p className="text-xs">Where anything can only be said once.</p>
       </div>
       <div className="flex w-full max-w-[800px] flex-col gap-4 px-4">
         <div className="flex flex-col gap-2">
@@ -39,7 +40,7 @@ export default async function Thread({ params }: { params: { tid: string } }) {
               ", " +
               openingPostWithReplies.createdAt.toLocaleTimeString()}
           </p>
-          <p className="w-full max-w-[800px] text-neutral-800">
+          <p className="w-full max-w-[800px] break-words text-neutral-800">
             {openingPostWithReplies.content}
           </p>
         </div>
@@ -55,7 +56,7 @@ export default async function Thread({ params }: { params: { tid: string } }) {
                     ", " +
                     reply.createdAt.toLocaleTimeString()}
                 </p>
-                <p className="text-neutral-800">{reply.content}</p>
+                <p className="break-words text-neutral-800">{reply.content}</p>
               </div>
             );
           })}
