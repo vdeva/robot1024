@@ -54,7 +54,7 @@ export function NewReply(props: { parentPost: string }) {
         <div className="flex flex-col">
           <textarea
             disabled={isLoading}
-            className="h-full min-h-[80px] w-full min-w-[300px] rounded-xl border px-3 py-2 text-sm shadow-xl focus-visible:outline-none md:min-w-[400px]"
+            className="h-full min-h-[80px] w-full min-w-[300px] rounded-xl border px-3 py-2 text-sm shadow-md outline-none transition-all duration-200 ease-in-out focus-visible:shadow-xl focus-visible:outline-none md:min-w-[400px]"
             value={inputText}
             onChange={handleChange}
             placeholder="Write a reply..."
