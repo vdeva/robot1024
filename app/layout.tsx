@@ -5,7 +5,7 @@ import type { Metadata } from "next";
 
 export const metadata: Metadata = {
   title: "ROBOT1024",
-  description: "original posts only",
+  description: "Where anything can only be said once.",
 };
 
 export default function RootLayout({

@@ -14,6 +14,8 @@ export async function createPost(
 ) {
   if (!process.env.MISTRAL_API_KEY) throw new Error("Missing MISTRAL_API_KEY.");
   if (!process.env.POST_LIMIT) throw new Error("Missing POST_LIMIT.");
+  if (!process.env.SIMILARITY_THRESHOLD)
+    throw new Error("Missing SIMILARITY_THRESHOLD.");
   if (!process.env.HCAPTCHA_SECRET_KEY)
     throw new Error("Missing HCAPTCHA_SECRET_KEY.");
 
@@ -129,7 +131,7 @@ export async function createPost(
     try {
       const result = await db.transaction(
         async (tx) => {
-          const similarityThreshold = 0.94;
+          const similarityThreshold = process.env.SIMILARITY_THRESHOLD;
           const similarityOps = sql`1 - (${cosineDistance(openingPosts.embedding, embeddingParsed)})`;
           const similarityReplies = sql`1 - (${cosineDistance(replies.embedding, embeddingParsed)})`;
 
